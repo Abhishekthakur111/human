@@ -1,0 +1,62 @@
+<div class="main-menu menu-fixed menu-light menu-accordion menu-shadow " id='sidebar-menu' data-scroll-to-active="true">
+    <div class="navbar-header">
+        <ul class="nav navbar-nav flex-row">
+            <li class="nav-item me-auto"><a class="navbar-brand" href="/dashboard"><span class="brand-logo">
+                       <img src="./../app-assets/images/icon.png" alt="">
+                    </span>
+                    <h2 class="brand-text">Human AI</h2>
+                </a></li>
+            <li class="nav-item nav-toggle"><a class="nav-link modern-nav-toggle pe-0" data-bs-toggle="collapse"><i class="d-block d-xl-none text-primary toggle-icon font-medium-4" data-feather="x"></i><i class="d-none d-xl-block collapse-toggle-icon font-medium-4  text-primary" data-feather="disc" data-ticon="disc"></i></a></li>
+        </ul>
+    </div>
+    <div class="shadow-bottom"></div>
+    <div class="main-menu-content">
+        <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
+            <li class="nav-item <%= ['Dashboard'].includes(title) ? 'active' : '' %>">
+                <a class="d-flex align-items-center" href="/dashboard">
+                    <i data-feather="home"></i>
+                    <span class="menu-title text-truncate" data-i18n="carrier">Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item <%= ['Users','User Details'].includes(title) ? 'active' : '' %>">
+                <a class="d-flex align-items-center" href="/userlist">
+                    <i data-feather="users"></i>
+                    <span class="menu-title text-truncate" data-i18n="user">Users</span>
+                </a>
+            </li>
+            <li class="nav-item <%= ['Prompt','Edit Prompt','Add Prompt','Promt Details'].includes(title) ? 'active' : '' %>">
+                <a class="d-flex align-items-center" href="/prompt">
+                    <i data-feather="message-square"></i>
+                    <span class="menu-title text-truncate" data-i18n="carrier">Prompt</span>
+                </a>
+            </li>
+          
+            <li class="nav-item <%= ['Contact Us','Contact Details',].includes(title) ? 'active' : '' %>">
+                <a class="d-flex align-items-center" href="/contacts">
+                    <i data-feather="phone"></i>
+                    <span class="menu-title text-truncate" data-i18n="carrier">Contact Us</span>
+                </a>
+            </li>
+            <li class="nav-item <%= ['Privacy Policy'].includes(title) ? 'active' : '' %>">
+                <a class="d-flex align-items-center" href="/privacypolicy">
+                    <i data-feather="lock"></i>
+                    <span class="menu-title text-truncate" data-i18n="carrier">Privacy Policy</span>
+                </a>
+            </li>
+            <li class="nav-item <%= ['About Us'].includes(title) ? 'active' : '' %>">
+                <a class="d-flex align-items-center" href="/aboutus">
+                    <i data-feather="info"></i>
+                    <span class="menu-title text-truncate" data-i18n="carrier">About Us</span>
+                </a>
+            </li>
+            <li class="nav-item <%= ['Terms & Conditions'].includes(title) ? 'active' : '' %>">
+                <a class="d-flex align-items-center" href="/term&conditions">
+                    <i data-feather="file-text"></i>
+                    <span class="menu-title text-truncate" data-i18n="carrier">Terms & Conditions</span>
+                </a>
+            </li>
+         
+        </ul>
+    </div>
+   
+</div>

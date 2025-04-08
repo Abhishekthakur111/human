@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html class="loading" lang="en" data-textdirection="ltr">
+<%- include('../common/header.ejs'); %>
+
+    <body class="vertical-layout vertical-menu-modern navbar-floating footer-static" data-open="click"
+        data-menu="vertical-menu-modern" data-col="">
+        <%- include('../common/navbar.ejs'); %>
+            <%- include('../common/sidebar.ejs'); %>
+
+                <div class="app-content content">
+                    <div class="content-overlay"></div>
+                    <div class="header-navbar-shadow"></div>
+                    <div class="content-wrapper">
+                        <div class="content-header row"></div>
+                        <div class="content-body">
+                            <div class="auth-wrapper">
+                                <div class="auth-inner py-2">
+                                    <div class="card mb-0">
+                                        <div class="card-body">
+                                            <form class="auth-register-form" method="POST">
+
+                                                <div>
+                                                    <div class="mb-1">
+                                                        <label class="form-label">Title</label>
+                                                        <textarea class="form-control" readonly
+                                                            rows="3"><%= data?.text || 'N/A' %></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex justify-content-end">
+                                                    <a href="/prompt" class="btn btn-primary">Back</a>
+                                                </div>
+                                        </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+
+                <%- include('../common/footer.ejs'); %>
+
+                    <script src="../../../app-assets/vendors/js/vendors.min.js"></script>
+                    <script src="../../../app-assets/js/core/app-menu.js"></script>
+                    <script src="../../../app-assets/js/core/app.js"></script>
+
+                    <script>
+                        $(window).on("load", function () {
+                            if (typeof feather !== "undefined") {
+                                feather.replace({ width: 14, height: 14 });
+                            }
+                        });
+                    </script>
+    </body>
+
+</html>
