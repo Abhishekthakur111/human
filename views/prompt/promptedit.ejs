@@ -2,17 +2,12 @@
 
 <!DOCTYPE html>
 <html class="loading" lang="en" data-textdirection="ltr">
-  <%- include('../common/header.ejs'); %>
-
   <body
     class="vertical-layout vertical-menu-modern navbar-floating footer-static"
     data-open="click"
     data-menu="vertical-menu-modern"
     data-col=""
   >
-    <%- include('../common/navbar.ejs'); %> 
-    <%- include('../common/sidebar.ejs'); %>
-
     <div class="app-content content">
       <div class="content-wrapper">
         <div class="content-header row"></div>
@@ -22,12 +17,12 @@
               <div class="card mb-0">
                 <div class="card-body">
                   <form
-                    id="validate"
-                    action="/editprompts/<%= data.id %>"
-                    method="POST"
-                    enctype="multipart/form-data"
-                    novalidate
-                  >
+                  id="categoryForm"
+                  action="/editprompts/<%= data.id %>"
+                  method="POST"
+                  enctype="multipart/form-data"
+                  novalidate
+                >
                   <div class="mb-1">
                     <label for="text" class="form-label">Title</label>
                     <input
@@ -37,20 +32,20 @@
                       name="text"
                       minlength="2"
                       maxlength="100"
-                      value="<%= data.text %>"
                       required
+                      value="<%= data.text %>"
+                      oninput="this.value = this.value.replace(/^\s+/g, '');"
                     />
-                    <div class="invalid-feedback" id="textError"></div>
-                  </div>
-                    <div class="d-flex justify-content-end">
-                      <button type="submit" class="btn btn-success mx-1">
-                        Update
-                      </button>
-                      <a href="/prompt" class="btn btn-primary"
-                        >Back</a
-                      >
+                    <div class="invalid-feedback">
+                      Title must be between 2 and 100 characters and cannot start with spaces.
                     </div>
-                  </form>
+                  </div>
+
+                  <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-success mx-1">Update</button>
+                    <a href="/prompt" class="btn btn-primary">Back</a>
+                  </div>
+                </form>
                 </div>
               </div>
             </div>
@@ -58,60 +53,27 @@
         </div>
       </div>
     </div>
-   
-    <%- include('../common/footer.ejs'); %>
-
     <script src="../../../app-assets/vendors/js/vendors.min.js"></script>
     <script src="../../../app-assets/js/core/app-menu.js"></script>
     <script src="../../../app-assets/js/core/app.js"></script>
 
   >
-    <script>
-      $(window).on("load", function () {
-        if (feather) {
-          feather.replace({
-            width: 14,
-            height: 14,
-          });
+  <script>
+    window.addEventListener("load", function () {
+      if (feather) {
+        feather.replace({ width: 14, height: 14 });
+      }
+
+      const form = document.getElementById("categoryForm");
+      form.addEventListener("submit", function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
         }
+        form.classList.add("was-validated");
       });
-    </script>
- <script>
-  function validateTitle(input) {
-    const errorElement = document.getElementById("textError");
-
-    if (!errorElement) return; 
-
-    if (input.value.trim() === "") {
-      errorElement.textContent = "Title is required.";
-      errorElement.style.display = "block";
-      input.classList.add("is-invalid");
-      return false;
-    } else if (input.value.startsWith(" ")) {
-      errorElement.textContent = "Consecutive spaces are not allowed.";
-      errorElement.style.display = "block";
-      input.classList.add("is-invalid");
-      return false;
-    } else {
-      errorElement.style.display = "none";
-      input.classList.remove("is-invalid");
-      return true;
-    }
-  }
-
-  document.getElementById("validate").addEventListener("submit", function (event) {
-    const titleInput = document.getElementById("text");
-    const isValid = validateTitle(titleInput);
-
-    if (!isValid) {
-      event.preventDefault(); 
-    }
-  });
-
-  document.getElementById("text").addEventListener("input", function () {
-    validateTitle(this);
-  });
-</script>
+    });
+  </script>
   </body>
 </html>
 

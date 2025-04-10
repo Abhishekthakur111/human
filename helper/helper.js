@@ -58,12 +58,15 @@ module.exports = {
         }
     },    
     checkAdminSession :async (req, res, next) => {
-        if (req.originalUrl === '/login' || req.originalUrl === '/loginpost') {
-            return next();
-        }
-        if (!req.session.admin) {
+        try {
+            if (!req.session.admin) {
+                return res.redirect('/login');
+            } else {
+                res.locals.admin = req.session.admin
+                next();
+            }
+        } catch (error) {
             return res.redirect('/login');
-        }
-        next();
-    },
+        }}
+
 };

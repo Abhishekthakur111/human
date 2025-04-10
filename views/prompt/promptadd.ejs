@@ -1,17 +1,11 @@
 <!DOCTYPE html>
 <html class="loading" lang="en" data-textdirection="ltr">
-  <%- include('../common/header.ejs'); %>
-
   <body
     class="vertical-layout vertical-menu-modern navbar-floating footer-static"
     data-open="click"
     data-menu="vertical-menu-modern"
     data-col=""
   >
-    <%- include('../common/navbar.ejs'); %> 
-    <%- include('../common/sidebar.ejs'); %>
-
-   
     <div class="app-content content">
       <div class="content-overlay"></div>
       <div class="header-navbar-shadow"></div>
@@ -21,19 +15,29 @@
             <div class="auth-inner py-2">
               <div class="card mb-0">
                 <div class="card-body">
-                  <form id="categoryForm" class="auth-register-form" action="/createpromt" method="POST" enctype="multipart/form-data">
-                    
+                  <form id="categoryForm" class="auth-register-form needs-validation" action="/createpromt" method="POST" enctype="multipart/form-data" novalidate>
                     <div class="mb-1">
                       <label for="text" class="form-label">Title</label>
-                      <input type="text" class="form-control" id="text" name="text" placeholder="Enter title" minlength="2" maxlength="50" />
-                      <small id="textError" class="text-danger" style="display: none"></small>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="text"
+                        name="text"
+                        placeholder="Enter title"
+                        minlength="2"
+                        maxlength="100"
+                        required
+                        oninput="this.value = this.value.replace(/^\s+/g, '');"
+                      />
+                      <div class="invalid-feedback">Title is required and must be 2-100 characters.</div>
                     </div>
-    
+                  
                     <div class="d-flex justify-content-end">
                       <button type="submit" class="btn btn-success mx-1">Add</button>
                       <a class="btn btn-primary" href="/prompt">Back</a>
                     </div>
                   </form>
+                  
                 </div>
               </div>
             </div>
@@ -41,49 +45,25 @@
         </div>
       </div>
     </div>
-    <%- include('../common/footer.ejs'); %>
+    
 
     <script src="../../../app-assets/vendors/js/vendors.min.js"></script>
     <script src="../../../app-assets/js/core/app-menu.js"></script>
     <script src="../../../app-assets/js/core/app.js"></script>
-
     <script>
-      function validateTitle(input) {
-        const errorElement = document.getElementById("textError");
+      (function () {
+        'use strict';
+        var form = document.getElementById('categoryForm');
     
-        if (input.value.trim() === "") {
-          errorElement.textContent = "Title is required.";
-          errorElement.style.display = "block";
-          input.classList.add("is-invalid");
-        } else if (input.value.startsWith(" ")) {
-          errorElement.textContent = "Consecutive spaces are not allowed.";
-          errorElement.style.display = "block";
-          input.classList.add("is-invalid");
-        } else {
-          errorElement.style.display = "none";
-          input.classList.remove("is-invalid");
-        }
-      }
-    
-      document.getElementById("categoryForm").addEventListener("submit", function (event) {
-        let isValid = true;
-        const titleInput = document.getElementById("text");
-    
-        if (titleInput.value.trim() === "" || titleInput.value.startsWith(" ")) {
-          isValid = false;
-          validateTitle(titleInput);
-        }
-    
-        if (!isValid) {
-          event.preventDefault();
-        }
-      });
-    
-      document.getElementById("text").addEventListener("input", function () {
-        validateTitle(this);
-      });
+        form.addEventListener('submit', function (event) {
+          if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          form.classList.add('was-validated');
+        }, false);
+      })();
     </script>
-    
     
     <script>
       $(window).on("load", function () {

@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html class="loading" lang="en" data-textdirection="ltr">
   <head>
-    <%- include('../common/header.ejs'); %>
     <style>
       .note-editor.fullscreen {
         position: fixed;
@@ -22,15 +21,6 @@
     data-menu="vertical-menu-modern"
     data-col=""
   >
-    <!-- BEGIN: Header-->
-    <%- include('../common/navbar.ejs'); %>
-    <!-- END: Header-->
-
-    <!-- BEGIN: Main Menu-->
-    <%- include('../common/sidebar.ejs'); %>
-    <!-- END: Main Menu-->
-
-    <!-- BEGIN: Content-->
     <div class="app-content content">
       <div class="content-overlay"></div>
       <div class="header-navbar-shadow"></div>
@@ -38,7 +28,6 @@
         <div class="content-header row">
           <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
-              <!-- Breadcrumbs -->
             </div>
           </div>
         </div>
@@ -122,7 +111,7 @@
     <div class="drag-target"></div>
 
     <!-- BEGIN: Footer-->
-    <%- include('../common/footer.ejs'); %>
+    
     <!-- END: Footer-->
 
     <!-- BEGIN: Vendor JS-->

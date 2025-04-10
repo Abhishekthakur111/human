@@ -1,47 +1,28 @@
 <!DOCTYPE html>
 <html class="loading" lang="en" data-textdirection="ltr">
-  <!-- BEGIN: Head-->
   <head>
-    <!-- DataTables CSS -->
     <link
       rel="stylesheet"
       href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
     />
-
-    <!-- BEGIN: Head-->
-    <%- include('../common/header.ejs'); %>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- END: Head-->
-
     <style>
       .card-datatable {
         padding: 20px;
       }
     </style>
   </head>
-  <!-- BEGIN: Body-->
   <body
     class="vertical-layout vertical-menu-modern navbar-floating footer-static"
     data-open="click"
     data-menu="vertical-menu-modern"
     data-col=""
   >
-    <!-- BEGIN: Header-->
-    <%- include('../common/navbar.ejs'); %>
-    <!-- END: Header-->
-
-    <!-- BEGIN: Main Menu-->
-    <%- include('../common/sidebar.ejs'); %>
-    <!-- END: Main Menu-->
-
-    <!-- BEGIN: Content-->
     <div class="app-content content">
       <div class="content-overlay"></div>
       <div class="header-navbar-shadow"></div>
       <div class="content-wrapper container-xxl p-0">
         <div class="content-header row"></div>
         <div class="content-body">
-          <!-- users list start -->
           <section class="app-user-list">
             <div class="card">
               <div class="card-header d-flex justify-content-end">
@@ -97,7 +78,6 @@
                 <div class="d-flex justify-content-end pt-4">
                   <nav aria-label="Page navigation example">
                     <ul class="pagination">
-                      <!-- Previous button -->
                       <% if (currentPage > 1) { %>
                       <li class="page-item">
                         <a
@@ -112,8 +92,6 @@
                         <a class="page-link" href="#">Previous</a>
                       </li>
                       <% } %>
-
-                      <!-- Page numbers -->
                       <% for (let i = 1; i <= totalPages; i++) { %>
                       <li
                         class="page-item <%= (i === currentPage) ? 'active' : '' %>"
@@ -126,8 +104,6 @@
                         </a>
                       </li>
                       <% } %>
-
-                      <!-- Next button -->
                       <% if (currentPage < totalPages) { %>
                       <li class="page-item">
                         <a
@@ -159,7 +135,7 @@
     <div class="drag-target"></div>
 
     <!-- BEGIN: Footer-->
-    <%- include('../common/footer.ejs'); %>
+    
     <!-- END: Footer-->
 
     <!-- BEGIN: Vendor JS-->
@@ -180,7 +156,7 @@
 
     <!-- BEGIN: Page JS-->
     <script src="../../../app-assets/js/scripts/pages/dashboard-ecommerce.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <!-- END: Page JS-->
 

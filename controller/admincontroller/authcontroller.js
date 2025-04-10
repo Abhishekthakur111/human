@@ -41,7 +41,7 @@ module.exports = {
   },
   login: async (req, res) => {
     try {
-      res.render("login",{ layout: false ,});
+      res.render("login",{ layout: false});
     } catch (error) {
       req.flash("error", "Something went wrong, please try again");
       return res.redirect("/login");
@@ -73,6 +73,7 @@ module.exports = {
       const profile = await db.users.findOne({
         where: { email: req.session.admin.email },
       });
+      
       res.render("admin/profile.ejs", {
         session: req.session.admin,
         profile,
