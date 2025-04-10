@@ -3352,3 +3352,6 @@ tr.group {
     border-radius: 10px;
     margin-bottom: 10px;
   }
+  .btn.btn-primary.waves-effect.waves-float.waves-light {
+    margin-bottom: 3px !important;
+  }
