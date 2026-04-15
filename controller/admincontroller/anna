@@ -1,0 +1,446 @@
+const helper = require("../../helpers/helper");
+const db = require("../../models");
+const { Validator } = require("node-input-validator");
+db.booking.belongsTo(db.services, { as: 'servicesssss', foreignKey: 'service_id' });
+
+
+
+
+module.exports = {
+    create_stripe_connect_url: async function (stripe, getUser, stripeReturnUrl) {
+        try {
+            let account;
+            let accountLink;
+            let hash_account = "0";
+
+            if (!getUser.account_id || getUser.account_id === "") {
+
+                account = await stripe.accounts.create({
+                    country: "US",
+                    type: "express",
+                    email: getUser?.email,
+                    capabilities: {
+                        card_payments: {
+                            requested: true,
+                        },
+                        transfers: {
+                            requested: true,
+                        },
+                    },
+                    business_profile: {
+                        url: stripeReturnUrl,
+                    },
+                });
+
+                accountLink = await stripe.accountLinks.create({
+                    account: account?.id,
+                    refresh_url: stripeReturnUrl,
+                    return_url: stripeReturnUrl,
+                    type: "account_onboarding",
+                });
+
+                hash_account = "0";
+            } else {
+
+                account = await stripe.accounts.retrieve(getUser.account_id);
+                if (account?.charges_enabled === false) {
+                    accountLink = await stripe.accountLinks.create({
+                        account: account?.id,
+                        refresh_url: stripeReturnUrl,
+                        return_url: stripeReturnUrl,
+                        type: "account_onboarding",
+                    });
+
+                    hash_account = "0";
+                } else {
+                    hash_account = "1";
+                }
+            }
+
+
+            await db.users.update(
+                {
+                    account_id: account?.id || "",
+                    hash_account: hash_account,
+                },
+                {
+                    where: { id: getUser.id },
+                }
+            );
+
+            return accountLink;
+        } catch (err) {
+            console.log(err, "======================================");
+            throw err;
+        }
+    },
+
+
+    //  MY APIS DATA SHOW NO FRONTEND SIDE DATA //
+    stripe_connect_url: async (req, res) => {
+        try {
+            const user_data = await db.users.findOne({
+                where: { id: req.user.id },
+                raw: true,
+                nest: true,
+            });
+
+            const accountLink = await module.exports.create_stripe_connect_url(
+                stripe,
+                user_data,
+                stripeReturnUrl + `?state=${user_data.id}`
+            );
+            if (accountLink && accountLink.url) {
+                return helper.success(
+                    res,
+                    "Please add stripe account first",
+                    accountLink
+                );
+            }
+        } catch (error) {
+            console.log("error", error);
+            // return helper.failure(res, "Internal server error");
+        }
+    },
+    stripe_connect: async (req, res) => {
+        try {
+            let hasAccountId;
+            let state = req.query.state;
+            const userData = await db.users.findOne({
+                where: {
+                    id: state,
+                },
+                raw: true,
+            });
+            const responseData = await stripe.accounts.retrieve(
+                userData.stripeAccountId
+            );
+            if (responseData?.charges_enabled == false) {
+                hasAccountId = 0;
+            } else {
+                hasAccountId = 1;
+            }
+            await db.users.update(
+                {
+                    stripeAccountId: responseData?.id,
+                    hasAccountId: hasAccountId,
+                },
+                {
+                    where: {
+                        id: state,
+                    },
+                }
+            );
+            const update_user = await db.users.findOne({
+                where: {
+                    id: state,
+                },
+                raw: true,
+            });
+            if (responseData?.charges_enabled) {
+                return res.redirect("/api/stripe_Success_url");
+            } else {
+                return res.redirect("/api/stripe_Cancel_url");
+            }
+        } catch (err) {
+            console.log(err, "============================");
+        }
+    },
+    stripe_Success_url: async (req, res) => {
+        try {
+            res.render("stripe_Success_url", {});
+        } catch (error) {
+            req.flash("msg", "Error fetching stripe data.");
+        }
+    },
+    stripe_Cancel_url: async (req, res) => {
+        try {
+            res.render("stripe_Cancel_url", {});
+        } catch (error) {
+            req.flash("msg", "Error fetching cancelurl data.");
+        }
+    },
+    stripe_status_update: async (req, res) => {
+        try {
+            const find_Transaction = await db.Transaction.findOne({
+                where: {
+                    transtion_id: req.body.transation_id,
+                },
+                raw: true,
+                nest: true,
+            });
+            let userData = await db.users.findOne({
+                where: {
+                    id: find_Transaction.user_to,
+                },
+                raw: true,
+            });
+            if (find_Transaction) {
+                await db.Transaction.update(
+                    {
+                        payment_status: 1,
+                    },
+                    {
+                        where: {
+                            id: find_Transaction.id,
+                        },
+                    }
+                );
+
+                let msg = "Payment successfully done";
+
+                return helper.success(res, msg);
+            }
+        } catch (error) {
+            return helper.error(res, error);
+        }
+    },
+    payment_api: async (req, res) => {
+        try {
+            const v = new Validator(req.body, {
+                booking_id: "required|integer",
+            });
+
+            const errorsResponse = await helper.checkValidation(v);
+            if (errorsResponse) return helper.error(res, errorsResponse);
+
+            const booking = await db.booking.findOne({
+                where: { id: req.body.booking_id },
+                raw: true,
+            });
+
+            if (!booking) return helper.error(res, "Booking not found");
+
+            const provider = await db.users.findOne({
+                where: { id: booking.provider_id },
+                raw: true,
+            });
+
+            const user = await db.users.findOne({
+                where: { role: "0" },
+                raw: true,
+            });
+
+            const adminCommissionPercent = user.admin_commission;
+
+            const AdminFee = parseFloat(booking.amount);
+
+
+            const AdminCommissionAmount = (AdminFee * adminCommissionPercent) / 100;
+            const TotalBeforeStripe = AdminFee + AdminCommissionAmount;
+
+            const stripe_fee_percent = 0.029;
+            const stripe_fixed_fee = 0.3;
+
+
+            const StripeFee = parseFloat((TotalBeforeStripe * stripe_fee_percent + stripe_fixed_fee).toFixed(2));
+
+            const TotalAmount = TotalBeforeStripe + StripeFee;
+            const roundedTotalAmount = parseFloat(TotalAmount.toFixed(0));
+
+
+
+            const adminAmount = AdminCommissionAmount;
+            const providerAmount = roundedTotalAmount - adminAmount - StripeFee;
+
+            console.log("Admin Fee (Booking Amount):", AdminFee);
+            console.log("Admin Commission (Amount):", AdminCommissionAmount);
+            console.log("Total Before Stripe Fee:", TotalBeforeStripe);
+            console.log("Stripe Fee:", StripeFee);
+            console.log("Total Amount:", TotalAmount);
+            console.log("Admin Amount:", adminAmount);
+            console.log("Provider Amount:", providerAmount);
+
+            if (!user.stripeid) {
+                const customer = await stripe.customers.create({
+                    email: user.email,
+                });
+
+                await db.users.update(
+                    { stripeid: customer.id },
+                    { where: { id: user.id } }
+                );
+
+                user.stripeid = customer.id;
+            }
+
+            const payment = await helper.stripePayment(TotalAmount, user);
+
+            if (payment) {
+                const { paymentIntent, ephemeralKey } = payment;
+
+                await db.transactions.create({
+                    user_id: req.user.id,
+                    provider_id: booking.provider_id,
+                    booking_id: req.body.booking_id,
+                    total_amount: TotalAmount,
+                    stripe_charge: StripeFee,
+                    provider_amount: providerAmount,
+                    admin_comission: adminCommissionPercent,
+                    admin_amount: adminAmount,
+                    trasaction_id: paymentIntent.id,
+                    payment_status: "0",
+                    payment_method: "1",
+                });
+
+                const responseObj = {
+                    paymentIntent: paymentIntent.client_secret,
+                    ephemeralKey: ephemeralKey.secret,
+                    customer: user.stripeid,
+                    publishableKey: publishableKey,
+                    transactionId: paymentIntent.id,
+                    adminCommissionPercent: adminCommissionPercent,
+                    totalAmount: TotalAmount,
+                    adminAmount: adminAmount,
+                    providerAmount: providerAmount,
+                    stripeFee: StripeFee,
+                };
+
+                return helper.success(res, "Payment intent successful", responseObj);
+            }
+
+            return helper.error(res, "Payment failed");
+
+        } catch (error) {
+            console.error("Payment intent Error:", error);
+            return helper.error(res, "Something went wrong", error);
+        }
+    },
+    stripe_status_update: async (req, res) => {
+        try {
+            const { transation_id } = req.body;
+
+            if (!transation_id) {
+                return helper.error(res, "Transaction ID is required.");
+            }
+
+            const transaction = await db.transactions.findOne({
+                where: { trasaction_id: transation_id },
+                raw: true,
+            });
+
+            if (!transaction) {
+                return helper.error(res, "Transaction not found.");
+            }
+
+            if (transaction.payment_status === "1") {
+                return helper.success(res, "Payment already processed.");
+            }
+
+            await db.transactions.update(
+                { payment_status: "1" },
+                { where: { id: transaction.id } }
+            );
+
+            const bookingId = transaction.booking_id;
+
+            if (!bookingId) {
+                return helper.error(res, "Associated booking not found in transaction.");
+            }
+
+            await db.booking.update(
+                {
+                    payment_status: "1",
+                    payment_method: "1",
+                    status: "4",
+                },
+                { where: { id: bookingId } }
+            );
+
+            const booking = await db.booking.findOne({
+                where: { id: bookingId },
+                include: [
+                    {
+                        model: db.services,
+                        as: 'servicesssss'
+                    },
+                ],
+            });
+
+            if (!booking) {
+                return helper.error(res, "Booking not found after update.");
+            }
+
+            const user = await db.users.findOne({
+                where: { id: booking.user_id },
+                attributes: ['id', 'device_token', 'first_name', 'last_name', 'image', 'is_notification'],
+            });
+
+            const provider = await db.users.findOne({
+                where: { id: booking.provider_id },
+                attributes: ['id', 'device_token', 'first_name', 'last_name', 'image', 'is_notification'],
+            });
+
+            const serviceTitle = booking.servicesssss?.service_title || "Service";
+
+            await db.notifications.create({
+                sender_id: req.user.id,
+                receiver_id: booking.provider_id,
+                type: 8,
+                request_id: booking.id,
+                title: `Booking Confirmed: ${serviceTitle}`,
+                message: `${user.first_name} ${user.last_name} completed the payment. Booking confirmed.`,
+                sender_first_name: req.user.first_name,
+                sender_last_name: req.user.last_name,
+                sender_image: req.user.image,
+            });
+
+            if (provider?.device_token && provider?.is_notification == "1") {
+                await helper.sendPushNotification(
+                    provider.device_token,
+                    {
+                        sender_id: user.id,
+                        sender_first_name: user.first_name,
+                        sender_last_name: user.last_name,
+                        sender_image: user.image,
+                        title: `Booking Confirmed: ${serviceTitle}`,
+                        message:`${user.first_name} ${user.last_name} completed the payment. Booking confirmed.`,
+                        type: 8,
+                        booking_id: booking.id || 0,
+                    },
+                    1
+                );
+            }
+
+            return helper.success(res, "Payment processed and provider notified.");
+        } catch (error) {
+            console.error("Stripe Status Update Error:", error);
+            return helper.error(res, "Something went wrong.", error);
+        }
+    },
+
+
+    transactions: async (req, res) => {
+        try {
+            const userId = req.user.id;
+
+            const user = await db.users.findOne({
+                where: { id: userId },
+                raw: true,
+                nest: true,
+            });
+
+            if (!user) {
+                return helper.error(res, "User not found.");
+            }
+
+            const transactions = await db.transactions.findAll({
+                where: {
+                    provider_id: userId,
+                },
+                raw: true,
+                nest: true,
+                order: [["id", "DESC"]],
+            });
+
+            return helper.success(res, "Transactions fetched successfully", transactions);
+        } catch (error) {
+            console.error("Transaction fetch error:", error);
+            return helper.error(res, "Something went wrong", error);
+        }
+    }
+
+};
+
+
+
